@@ -15,7 +15,7 @@ Options:
 
 """
 
-from .. import read_file, init_backend, get_reader_from_gh
+from .. import read_file, init_backend, get_reader
 from locutus.model.terminology import Terminology
 from argparse import ArgumentParser, BooleanOptionalAction, FileType
 from ..support import open_support_file
@@ -25,8 +25,11 @@ import logging
 
 from rich import print
 
+# We will want to move this elsewhere eventually, but right now, this is fine,
+# since we don't expect it to change. 
 ongology_api_metadata = "https://github.com/NIH-NCPI/locutus_utilities/blob/main/data/output/ontology_api_metadata.csv"
 
+# These aren't present inside the CSV data, so we'll just facilitate it here. 
 api_metadata = {
     "umls": {
         "name": "UMLS - Unified Medical Language System",
@@ -47,8 +50,9 @@ def load_ontology_api_data(db, file_content):
     """Load data from a CSV file and build out the JSON necessary for loading 
     into the database
 
-    db - mongodb cursor
-    file_content - DictReader type file contents
+    Args:
+        db - mongodb client object
+        file_content - DictReader ready for iteration
     """
     # We don't currently have any use for editor here...
     onto_apis = {}
@@ -81,6 +85,13 @@ def load_ontology_api_data(db, file_content):
         logger.debug(f"Loaded {len(ontology_api['ontologies'])} for {api}")
 
 def seed_terminology(terminology_data, editor=None):
+    """Add terminology to the database using the locutus Model classes
+
+    Args:
+      terminology_data (dict): This is a full representation of the terminology
+      editor (string): how will the addition be tagged in provenance
+    """
+
     term_data = deepcopy(terminology_data)
 
     if editor is None:
@@ -109,9 +120,15 @@ def seed_terminology(terminology_data, editor=None):
     term = Terminology(**term_data)
 
 def format_for_loc(file_path):
+    """Build out the terminology object as expected by the Terminology constructor
+
+    Args:
+      file_path (str): GH Source path. We'll pull this down and load it 
+                       from file or directly from the web, if it's a web location.
+    """
     terminology_data = {}
 
-    reader = get_reader_from_gh(file_path)
+    reader = get_reader(file_path)
     for row in reader:
         terminology_id = row["terminology_id"]
         if terminology_id not in terminology_data:
@@ -158,7 +175,7 @@ def load_default_terminologies(organization):
 
     return terms_seeded
 
-def seed_database():
+def locutils():
     parser = ArgumentParser(description="Load CSV data into Firestore.")
     parser.add_argument(
         "-db",
@@ -236,5 +253,5 @@ def seed_database():
     # Load Ontology API data
     if args.api_ontologies:
         logger.debug(f"Loading API Ontologies")
-        csv_content = get_reader_from_gh("https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/output/ontology_api_metadata.csv")
+        csv_content = get_reader("https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/output/ontology_api_metadata.csv")
         load_ontology_api_data(client.db, csv_content)
