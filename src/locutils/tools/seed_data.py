@@ -175,7 +175,7 @@ def load_default_terminologies(organization):
     return terms_seeded
 
 def locutils():
-    parser = ArgumentParser(description="Load CSV data into Firestore.")
+    parser = ArgumentParser(description="Load CSV data into locutus database.")
     parser.add_argument(
         "-db",
         "--db-uri", 
