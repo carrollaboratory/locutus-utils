@@ -58,7 +58,6 @@ def load_ontology_api_data(db, file_content):
     onto_apis = {}
 
     for row in file_content:
-        print(row)
         if row['api_id'] not in onto_apis:
             onto_apis[row['api_id']] = {
                 "api_id": row['api_id'],
@@ -236,6 +235,9 @@ def locutils():
     # Load default terminologies if none are provided
     if len(args.terminology_csv) == 0:
         terms_seeded = load_default_terminologies(organization=args.org)
+    # Otherwise, load whichever terminologies were specifically provided
+    # Users can skip loading terminologies altogether using 'none' as
+    # the terminology filename
     elif args.terminology_csv != ['none']: 
         for termcsv in args.terminology_csv:
             term_data = format_for_loc(termcsv.name)
