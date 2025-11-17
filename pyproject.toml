@@ -29,4 +29,4 @@ where = ["src"]  # list of folders that contain the packages (["."] by default)
 "*" = ["*.yaml"]
 
 [project.scripts]
-seed_database = "locutils.tools.seed_data:seed_database"
+locutils = "locutils.tools.seed_data:locutils"

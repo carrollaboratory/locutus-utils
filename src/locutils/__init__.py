@@ -27,6 +27,11 @@ def init_backend(dburi=None):
 
     return _loc_client
 
+def get_reader(file_path, delimiter=None):
+    if re.search(r'^https:', file_path):
+        return get_reader_from_gh(url=file_path, delimiter=delimiter)
+    return DictReader(open(file_path, 'rt'))
+
 def get_reader_from_gh(url, delimiter=None):
     "Returns a dictreader iterator"
     resp = requests.get(url)
