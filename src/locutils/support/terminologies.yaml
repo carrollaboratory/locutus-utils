@@ -2,6 +2,8 @@ ftd-acr-enum-relationship-code:
   refresh_or_normalize: True
   seed_db: True
   remove_codes: True
+  organizations: 
+    - anvil
   source_data:
     type: file
     name: "pedigree_family_history_terminology.owl"
@@ -11,6 +13,7 @@ ftd-acr-enum-relationship-code:
     name: 
       - "ftd-acr-enum-relationship-code.csv"
     delimeter: ","
+    url_prefix: "https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/seed_etl"
   mappings:
     code:
       source_column: code
@@ -31,6 +34,8 @@ ftd-acr-enum-relationship-code:
 concept_map_relationship:
   refresh_or_normalize: False # FTD legacy manually created
   seed_db: True
+  organizations: 
+    - all
   remove_codes: True
   source_data: None # Not being normalized
   normalized_data:
@@ -38,9 +43,12 @@ concept_map_relationship:
     name: 
       - concept_map_relationship.csv
     delimeter: ","
+    url_prefix: "https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/seed_etl"
 ucum_common_units:
   refresh_or_normalize: False # FTD legacy manually created
   seed_db: True
+  organizations: 
+    - all
   remove_codes: True
   source_data: None  # Not being normalized
   normalized_data:
@@ -48,9 +56,12 @@ ucum_common_units:
     name: 
       - ucum_common_units.csv
     delimeter: ","
+    url_prefix: https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/seed_etl
 ftd-acr-enum-family-role:
   refresh_or_normalize: True # Download JSON https://terminology.hl7.org/6.2.0/ValueSet-v3-FamilyMember.json.html
   seed_db: True
+  organizations: 
+    - anvil
   remove_codes: True
   source_data:
     type: file
@@ -61,6 +72,7 @@ ftd-acr-enum-family-role:
     name: 
       - "ftd-acr-enum-family-role.csv"
     delimeter: ","
+    url_prefix: https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/seed_etl
   mappings:
     code:
       source_column: "curie"
@@ -81,6 +93,8 @@ ftd-acr-enum-family-role:
 ftd-acr-tgt-enums: # Not seeded. See data/seed_etl/README.md.
   refresh_or_normalize: True
   seed_db: False
+  organizations: 
+    - None
   remove_codes: True
   combined_data: True
   source_data:
@@ -103,6 +117,7 @@ ftd-acr-tgt-enums: # Not seeded. See data/seed_etl/README.md.
       - "acr-EnumSubjectType.csv"
       - "acr-EnumVitalStatus.csv"
     delimeter: ","
+    url_prefix: https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/seed_etl/reference_only
   mappings:
     tgt_variable: enumeration_group
     code:

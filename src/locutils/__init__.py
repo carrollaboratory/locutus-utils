@@ -8,11 +8,14 @@ import sys
 import time
 import pandas as pd
 from pathlib import Path
+from csv import DictReader 
+import io
 
 _loc_client = None
 logger = logging.getLogger(__name__)
 
 def init_backend(dburi=None):
+    global _loc_client
     if _loc_client is None:
         if dburi is None:
             logger.error("Database URI must be provided before running this script.")
@@ -21,9 +24,14 @@ def init_backend(dburi=None):
 
         _loc_client = persistence(mongo_uri=dburi, missing_ok=True)
         logger.info(f"Initialing locutus datamodel with db: {dburi}")
-        
+
     return _loc_client
-    
+
+def get_reader_from_gh(url, delimiter=None):
+    "Returns a dictreader iterator"
+    resp = requests.get(url)
+
+    return DictReader(io.StringIO(resp.content.decode("utf-8")))
 
 def read_file(filepath,delimeter=None):
     
