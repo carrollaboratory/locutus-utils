@@ -1,0 +1,10 @@
+# Build container and push it to the carrollab container registry
+#
+
+name: 'Add to registry'
+on:
+  push:
+    branches:
+      - main
+    pull_request:
+      types: [opened, reopened, synchronize]
