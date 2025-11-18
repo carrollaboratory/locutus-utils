@@ -171,6 +171,7 @@ def load_default_terminologies(organization):
     return terms_seeded
 
 def locutils():
+    from locutils._version import __version__
     global logger
     parser = ArgumentParser(description="Load CSV data into locutus database.")
     parser.add_argument(
@@ -199,6 +200,12 @@ def locutils():
         default="seed",
         choices=['seed'],       # Eventually, there will be others
         help=f"Which action should be taken."
+    )
+    parser.add_argument(
+        "--version",
+        action='version',
+        version=f'locutils {__version__}',
+        help="Print library's version"
     )
     parser.add_argument(
         "-t", 
@@ -236,6 +243,11 @@ def locutils():
     """
 
     args = parser.parse_args()
+    if args.version:
+        from locutils._version import __version__
+        print(__version__)
+        sys.exit(0)
+
     # Holding this off until I've had time to update the model's logging
     # to be more flexible
 
