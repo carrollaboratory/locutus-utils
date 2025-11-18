@@ -36,3 +36,7 @@ options:
 **org** is required when using the configuration to load the defaults. This informs the script which ontologies make sense (for example, there may be some ACR specific ontologies that don't make sense for us to load into a KF or INCLUDE hosted instance). 
 
 **api-ontologies** By default, the script will load the API Ontologies. However, if you are just loading some new terminologies or are updating some existing terminologies and don't need to refresh the API Ontology collection, simply turn it off using the flag, --no-api-ontologies. 
+
+**LOCUTUS_LOGLEVEL** This environment variable can be set to any of the standard 
+logging levels: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL. By default, it 
+is set to WARNING. 
