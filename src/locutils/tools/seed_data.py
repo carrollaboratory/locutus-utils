@@ -15,7 +15,7 @@ Options:
 
 """
 
-from .. import read_file, init_backend, get_reader, init_logging
+from .. import init_backend, get_reader, init_logging
 from argparse import ArgumentParser, BooleanOptionalAction, FileType
 from ..support import open_support_file
 from pathlib import Path
@@ -146,7 +146,7 @@ def format_for_loc(file_path):
     return terminology_data
 
 def load_default_terminologies(organization):
-    term_config, ext = open_support_file("terminologies.yaml")
+    term_config = open_support_file("terminologies.yaml")
 
     terms_seeded = {}
     for file_name, file_config in term_config.items():

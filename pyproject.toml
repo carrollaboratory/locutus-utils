@@ -12,7 +12,7 @@ classifiers = [
 ]
 
 dependencies = ["locutus @ git+https://github.com/NIH-NCPI/locutus",  
-                ]
+                "PyYAML"]
 
 dynamic = ["version"]
 
