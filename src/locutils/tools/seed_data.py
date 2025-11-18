@@ -15,15 +15,12 @@ Options:
 
 """
 
-from .. import read_file, init_backend, get_reader
-from locutus.model.terminology import Terminology
+from .. import read_file, init_backend, get_reader, init_logging
 from argparse import ArgumentParser, BooleanOptionalAction, FileType
 from ..support import open_support_file
 from pathlib import Path
 from copy import deepcopy
 import logging
-
-from rich import print
 
 # We will want to move this elsewhere eventually, but right now, this is fine,
 # since we don't expect it to change. 
@@ -41,7 +38,7 @@ api_metadata = {
     }
 }
 
-logger = logging.getLogger(__name__)
+logger = None
 
 class PotentialOrphanedCodings(Exception):
     pass
@@ -90,14 +87,13 @@ def seed_terminology(terminology_data, editor=None):
       terminology_data (dict): This is a full representation of the terminology
       editor (string): how will the addition be tagged in provenance
     """
-
+    from locutus.model.terminology import Terminology
     term_data = deepcopy(terminology_data)
 
     if editor is None:
         term_data['editor'] = 'seed-script'
 
-    logger.debug(f"Saving {term_data['name']} ({term_data['id']}) to database.")
-    logger.info(term_data)
+    logger.debug(f"Saving {term_data['name']} ({term_data['id']}) to database with {len(term_data['codes'])}.")
 
     # Let's confirm that there is nothing to be worried about if we are
     # replacing an existing terminology. 
@@ -175,6 +171,7 @@ def load_default_terminologies(organization):
     return terms_seeded
 
 def locutils():
+    global logger
     parser = ArgumentParser(description="Load CSV data into locutus database.")
     parser.add_argument(
         "-db",
@@ -225,8 +222,27 @@ def locutils():
         default=True,
         help="Load API ontologies (by default)."
     )
+    # Locutus currently clobbers the logger if we define it here, so I'll leave 
+    # this here but comment it out until I have time to update the model to be
+    # more flexible. 
+    """
+    parser.add_argument(
+        "-log",
+        "--log-level", 
+        choices=["NOTSET", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Logging level tolerated (default is INFO)"
+    )
+    """
 
     args = parser.parse_args()
+    # Holding this off until I've had time to update the model's logging
+    # to be more flexible
+
+    # init_logging(args.log_level)
+    logger = logging.getLogger(__name__)
+    # logger.info(f"Logger initialized to {args.log_level}")
+    
 
     # Initialize the model's database client
     client = init_backend(args.db_uri)
@@ -247,10 +263,10 @@ def locutils():
                 terms_seeded[termid] = terminology
 
     if len(terms_seeded) > 0:
-        print(f"Loaded {len(terms_seeded)} terminologies.")
+        logger.info(f"Loaded {len(terms_seeded)} terminologies.")
     
         for id, terminology in terms_seeded.items():
-            print(f"{id} - {terminology['name']} with {len(terminology['codes'])} codes")
+            logger.info(f"{id} - {terminology['name']} with {len(terminology['codes'])} codes")
 
     # Load Ontology API data
     if args.api_ontologies:

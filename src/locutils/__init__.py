@@ -11,8 +11,39 @@ from pathlib import Path
 from csv import DictReader 
 import io
 
+if sys.stderr.isatty():
+    from rich.console import Console 
+    from rich.logging import RichHandler 
+    from rich.traceback import install
+
 _loc_client = None
 logger = logging.getLogger(__name__)
+
+# Ideally, we should have a readable logger for local execution, but we'll need
+# to tweak locutus to do logging a little differently. So, we'll revisit this
+# once there is time for doing that little bit of work. 
+def init_logging(loglevel):
+    global logger
+    # When we are in the terminal, let's use the rich logging
+    DATEFMT = "%Y-%m-%dT%H:%M:%SZ"
+    if sys.stderr.isatty():
+        install(show_locals=True)
+        
+        handler = RichHandler(level=loglevel, 
+                console=Console(stderr=True),
+                show_time=False,
+                show_level=True,
+                rich_tracebacks=True)
+        FORMAT = "%(message)s"
+    else:
+        FORMAT = "%(asctime)s\t%(levelname)s\t%(message)s"
+        handler = logging.StreamHandler()
+
+    logging.basicConfig(
+        level=loglevel, format=FORMAT, datefmt=DATEFMT, handlers=[handler]
+    )
+    logger = logging.getLogger(__name__)
+
 
 def init_backend(dburi=None):
     global _loc_client
