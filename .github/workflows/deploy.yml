@@ -15,8 +15,8 @@ jobs:
 
     env:
       IMAGE_NAME: ghcr.io/carrollaboratory/locutils_img
-      IMAGE_TAG: "ghcr.io/carrollaboratory/locutils_img:${{ github.sha }}"
-      LATEST: "ghcr.io/carrollaboratory/locutils_img:latest"
+      IMAGE_TAG: "${{ github.sha }}"
+      LATEST: "latest"
 
     permissions:
       contents: write
