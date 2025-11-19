@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_NAME: ghcr.io/carrollaboratory/locutils
-      IMAGE_TAG: "locutils_img:${{ github.sha }}"
-      LATEST: "locutils_img:latest"
+      IMAGE_NAME: ghcr.io/carrollaboratory/locutils_img
+      IMAGE_TAG: "ghcr.io/carrollaboratory/locutils_img:${{ github.sha }}"
+      LATEST: "ghcr.io/carrollaboratory/locutils_img:latest"
 
     permissions:
       contents: write
