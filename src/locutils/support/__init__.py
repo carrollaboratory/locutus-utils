@@ -1,5 +1,4 @@
 import importlib_resources
-# from .. import read_file
 from yaml import safe_load
 
 _support_details = importlib_resources.files("locutils") / "support"
