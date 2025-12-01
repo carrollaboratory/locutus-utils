@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "locutils"
+description = "Tools that facilitate the development and maintenance of Locutus"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+
+dependencies = ["locutus @ git+https://github.com/NIH-NCPI/locutus",  
+                "PyYAML"]
+
+dynamic = ["version"]
+
+[tool.setuptools_scm]
+version_file = "src/locutils/_version.py"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]  # list of folders that contain the packages (["."] by default)
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml"]
+
+[project.scripts]
+locutils = "locutils.tools.seed_data:locutils"
