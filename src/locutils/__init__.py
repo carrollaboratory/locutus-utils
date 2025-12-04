@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 from csv import DictReader 
 import io
+from ._version import __version__
 
 if sys.stderr.isatty():
     from rich.console import Console 
