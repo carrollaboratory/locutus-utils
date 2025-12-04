@@ -18,6 +18,7 @@ Options:
 from .. import init_backend, get_reader, init_logging
 from argparse import ArgumentParser, BooleanOptionalAction, FileType
 from ..support import open_support_file
+import os
 from pathlib import Path
 from copy import deepcopy
 import logging
@@ -42,6 +43,15 @@ logger = None
 
 class PotentialOrphanedCodings(Exception):
     pass
+
+def db_uri():
+    # Support for the Locutus ENV Variable, if it's present
+    db_uri = os.getenv("MONGO_URI", None)
+
+    # However, we'll preference the KF teams request, if it is there
+    db_uri = os.getenv("DB_URI", db_uri)
+
+    return db_uri
 
 def load_ontology_api_data(db, file_content):
     """Load data from a CSV file and build out the JSON necessary for loading 
@@ -173,11 +183,15 @@ def load_default_terminologies(organization):
 def locutils():
     from locutils._version import __version__
     global logger
+
+    defaultdb = db_uri()
+
     parser = ArgumentParser(description="Load CSV data into locutus database.")
     parser.add_argument(
         "-db",
         "--db-uri", 
-        required=True,
+        required=defaultdb is None,
+        default=defaultdb,
         help="The locutus database URI to be updated."
     )
     parser.add_argument(
@@ -243,10 +257,6 @@ def locutils():
     """
 
     args = parser.parse_args()
-    if args.version:
-        from locutils._version import __version__
-        print(__version__)
-        sys.exit(0)
 
     # Holding this off until I've had time to update the model's logging
     # to be more flexible
