@@ -52,9 +52,10 @@ def init_backend(dburi=None):
             logger.error("Database URI must be provided before running this script.")
             sys.exit(1)
         from locutus import persistence
+        from locutus.storage.mongo import filter_uri
 
+        logger.info(f"Initialing locutus datamodel with db: {filter_uri(dburi)}")
         _loc_client = persistence(mongo_uri=dburi, missing_ok=True)
-        logger.info(f"Initialing locutus datamodel with db: {dburi}")
 
     return _loc_client
 
