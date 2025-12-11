@@ -265,7 +265,8 @@ def locutils():
     logger = logging.getLogger(__name__)
     # logger.info(f"Logger initialized to {args.log_level}")
     
-
+    from locutus.storage.mongo import filter_uri
+    print(f"Database URI: {filter_uri(args.db_uri)}")
     # Initialize the model's database client
     client = init_backend(args.db_uri)
 
@@ -285,13 +286,14 @@ def locutils():
                 terms_seeded[termid] = terminology
 
     if len(terms_seeded) > 0:
-        logger.info(f"Loaded {len(terms_seeded)} terminologies.")
-    
         for id, terminology in terms_seeded.items():
             logger.info(f"{id} - {terminology['name']} with {len(terminology['codes'])} codes")
-
+        
+        print(f"Loaded {len(terms_seeded)} terminologies.")
     # Load Ontology API data
     if args.api_ontologies:
         logger.debug(f"Loading API Ontologies")
         csv_content = get_reader("https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/output/ontology_api_metadata.csv")
         load_ontology_api_data(client.db, csv_content)
+        print("API Ontologies updated")
+    
