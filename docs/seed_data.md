@@ -33,6 +33,12 @@ options:
 ## Important Details
 **db-uri** is a required parameter and should follow the mongo convention *mongodb://{user}:{password}@{machinename}:{databasename}* 
 
+The following environment variables can also be used to store the database URI:
+* MONGO_URI
+* DB_URI
+
+If the command argument is present, it overrides whatever is in the environment.  DB_URI takes precedence of MONGO_URI. 
+
 **org** is required when using the configuration to load the defaults. This informs the script which ontologies make sense (for example, there may be some ACR specific ontologies that don't make sense for us to load into a KF or INCLUDE hosted instance). 
 
 **api-ontologies** By default, the script will load the API Ontologies. However, if you are just loading some new terminologies or are updating some existing terminologies and don't need to refresh the API Ontology collection, simply turn it off using the flag, --no-api-ontologies. 
