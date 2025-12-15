@@ -9,4 +9,7 @@ RUN apk update && \
     apk add --no-cache git yaml-dev && \
     pip install . 
 
+# Required by AWS for connecting to the DB
+RUN wget https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
+
 ENTRYPOINT ["locutils"]
