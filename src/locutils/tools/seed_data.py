@@ -14,7 +14,11 @@ Options:
 -a change the default action from seeding the db to deleting from the db.
 
 """
+import os 
 
+# Force the Logging Level since Locutus is likely to get that set
+# up before CLI has determined what the user might prefer
+os.environ['LOCUTUS_LOGLEVEL']='INFO'
 from .. import init_backend, get_reader, init_logging
 from argparse import ArgumentParser, BooleanOptionalAction, FileType
 from ..support import open_support_file
