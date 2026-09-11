@@ -9,7 +9,7 @@ For more information, see /locutus_util/seed_etl/README
 
 Run examples
 `python seed_etl/seed_database.py`
-Options:
+Options:ls .
 -e change the baseurl from localhost to another url
 -a change the default action from seeding the db to deleting from the db.
 
@@ -17,12 +17,14 @@ Options:
 
 import logging
 import os
+import sys
 from argparse import ArgumentParser, BooleanOptionalAction, FileType
 from copy import deepcopy
-from pathlib import Path
 
-from .. import get_reader, init_backend, init_logging
+from .. import get_reader, init_backend
 from ..support import open_support_file
+
+logger = logging.getLogger(__name__)
 
 # We will want to move this elsewhere eventually, but right now, this is fine,
 # since we don't expect it to change.
@@ -39,8 +41,6 @@ api_metadata = {
         "url": "https://www.ebi.ac.uk/ols4/api/",
     },
 }
-
-logger = None
 
 
 class PotentialOrphanedCodings(Exception):
@@ -115,12 +115,12 @@ def seed_terminology(terminology_data, editor=None):
     # replacing an existing terminology.
     tid = term_data.get("id")
     if tid:
-        incoming_codes = set([coding["code"] for coding in term_data["codes"]])
+        incoming_codes = {coding["code"] for coding in term_data["codes"]}
 
         orig_term = Terminology.get(tid)
         if orig_term:
             orig_term = orig_term.realize_as_dict()
-            existing_codes = set([coding["code"] for coding in orig_term["codes"]])
+            existing_codes = {coding["code"] for coding in orig_term["codes"]}
 
             orphans = existing_codes.difference(incoming_codes)
             if len(orphans):
@@ -165,12 +165,33 @@ def format_for_loc(file_path):
     return terminology_data
 
 
+def load_institution(institution_id, institution):
+    # This will only do anything if the institution doesn't already exist
+    from locutus.model.institution import Institution
+
+    inst = Institution.get(institution_id)
+
+    if not inst:
+        new_institution = {
+            "id": institution_id,
+            "name": institution["name"],
+            "allowed_emails": institution["allowed_emails"],
+        }
+
+        inst = Institution(**new_institution)
+        inst.save()
+        logger.info(f"New institution: {institution['name']}")
+    else:
+        logger.info(f"Skipping addition of institution, {institution['name']}")
+    return inst
+
+
 def load_default_terminologies(organization):
     term_config = open_support_file("terminologies.yaml")
 
     terms_seeded = {}
     for file_name, file_config in term_config.items():
-        orgs = set([x.lower() for x in file_config.get("organizations")])
+        orgs = {x.lower() for x in file_config.get("organizations")}
         if "all" in orgs or organization.lower() in orgs:
             if file_config.get("seed_db", False) == True:
                 fnames = file_config.get("normalized_data").get("name")
@@ -195,8 +216,6 @@ def load_default_terminologies(organization):
 
 def locutils():
     from locutils._version import __version__
-
-    global logger
 
     defaultdb = db_uri()
 
@@ -227,7 +246,7 @@ def locutils():
         "--action",
         default="seed",
         choices=["seed"],  # Eventually, there will be others
-        help=f"Which action should be taken.",
+        help="Which action should be taken.",
     )
     parser.add_argument(
         "--version",
@@ -257,6 +276,13 @@ def locutils():
         default=True,
         help="Load API ontologies (by default).",
     )
+    parser.add_argument(
+        "--institutions",
+        action=BooleanOptionalAction,
+        default=True,
+        help="Load default institution data if the institution doesn't exist",
+    )
+
     # Locutus currently clobbers the logger if we define it here, so I'll leave
     # this here but comment it out until I have time to update the model to be
     # more flexible.
@@ -285,6 +311,22 @@ def locutils():
     # Initialize the model's database client
     client = init_backend(args.db_uri)
 
+    if args.institutions:
+        institutions = open_support_file("institutions.yaml")
+        dbinst = []
+        for instid, institution in institutions.items():
+            try:
+                orgs = {x.lower() for x in institution.get("organizations")}
+                if "all" in orgs or args.org in orgs:
+                    dbinst.append(load_institution(instid, institution))
+            except KeyError:
+                logger.error(
+                    f"Malformed institution, {instid}. No organization entry was found."
+                )
+                sys.exit(1)
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"Malformed institution, {instid}. {e}")
+                sys.exit(1)
     terms_seeded = {}
     # Load default terminologies if none are provided
     if len(args.terminology_csv) == 0:
@@ -309,7 +351,7 @@ def locutils():
         print(f"Loaded {len(terms_seeded)} terminologies.")
     # Load Ontology API data
     if args.api_ontologies:
-        logger.debug(f"Loading API Ontologies")
+        logger.debug("Loading API Ontologies")
         csv_content = get_reader(
             "https://raw.githubusercontent.com/NIH-NCPI/locutus_utilities/refs/heads/main/data/output/ontology_api_metadata.csv"
         )

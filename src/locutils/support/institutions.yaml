@@ -1,0 +1,27 @@
+vumc:
+  name: Vanderbilt Medical Center
+  allowed_emails:
+    - yelena.cox@vumc.org
+    - eric.torstenson@vumc.org
+    - brenda.gutman@vumc.org
+    - andrew.ericson@vumc.org
+  organizations:
+    - include
+    - kf
+    - anvil
+kf:
+  name: Kids First
+  organizations:
+    - kf
+  allowed_emails:
+    - eric.torstenson@vumc.org
+    - andrew.ericson@vumc.org
+include:
+  name: INCLUDE
+  organizations:
+    - include
+  allowed_emails:
+    - yelena.cox@vumc.org
+    - eric.torstenson@vumc.org
+    - brenda.gutman@vumc.org
+    - andrew.ericson@vumc.org
