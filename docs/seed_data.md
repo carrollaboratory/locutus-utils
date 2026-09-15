@@ -1,8 +1,15 @@
 # Seeding the database
-locutils can be used to load Terminologies and Ontology API configuration details to a new database or update them within an existing database. The default configuration points to our Locutus Utilities repository where the files are created. However, users can also load terminologies from their local machine (or elsewhere on the web) as long as those files are formatted correctly. 
+
+locutils can be used to load Terminologies and Ontology API configuration
+details to a new database or update them within an existing database. The
+default configuration points to our Locutus Utilities repository where the files
+are created. However, users can also load terminologies from their local machine
+(or elsewhere on the web) as long as those files are formatted correctly.
 
 ## Usage
+
 Users can get help directly using the -h flag
+
 ```bash
 usage: locutils [-h] -db DB_URI [-s {terminologies,ontology_api,all}]
                 [-o {kf,include,anvil}] [-a {seed}] [-t TERMINOLOGY_CSV]
@@ -12,6 +19,7 @@ Load CSV data into Firestore.
 
 options:
   -h, --help            show this help message and exit
+  --config CONFIG       Primary configuration file containing relevant organizations and seed data for institutions
   -db, --db-uri DB_URI  The locutus database URI to be updated.
   -s, --seed-type {terminologies,ontology_api,all}
                         Which types of data do you wish to seed. Default to all types.
@@ -30,19 +38,32 @@ options:
                         Load API ontologies (by default).
 ```
 
+Please note that the choices provided for --org are defined by the configuration
+file provided.
+
 ## Important Details
-**db-uri** is a required parameter and should follow the mongo convention *mongodb://{user}:{password}@{machinename}:{databasename}* 
+
+**db-uri** is a required parameter and should follow the mongo convention
+_mongodb://{user}:{password}@{machinename}:{databasename}_
 
 The following environment variables can also be used to store the database URI:
-* MONGO_URI
-* DB_URI
 
-If the command argument is present, it overrides whatever is in the environment.  DB_URI takes precedence of MONGO_URI. 
+- MONGO_URI
+- DB_URI
 
-**org** is required when using the configuration to load the defaults. This informs the script which ontologies make sense (for example, there may be some ACR specific ontologies that don't make sense for us to load into a KF or INCLUDE hosted instance). 
+If the command argument is present, it overrides whatever is in the environment.
+DB_URI takes precedence of MONGO_URI.
 
-**api-ontologies** By default, the script will load the API Ontologies. However, if you are just loading some new terminologies or are updating some existing terminologies and don't need to refresh the API Ontology collection, simply turn it off using the flag, --no-api-ontologies. 
+**org** is required when using the configuration to load the defaults. This
+informs the script which ontologies make sense (for example, there may be some
+ACR specific ontologies that don't make sense for us to load into a KF or
+INCLUDE hosted instance).
 
-**LOCUTUS_LOGLEVEL** This environment variable can be set to any of the standard 
-logging levels: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL. By default, it 
-is set to WARNING. 
+**api-ontologies** By default, the script will load the API Ontologies. However,
+if you are just loading some new terminologies or are updating some existing
+terminologies and don't need to refresh the API Ontology collection, simply turn
+it off using the flag, --no-api-ontologies.
+
+**LOCUTUS_LOGLEVEL** This environment variable can be set to any of the standard
+logging levels: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL. By default, it is
+set to WARNING.
