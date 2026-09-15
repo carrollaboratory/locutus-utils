@@ -18,11 +18,13 @@ Options:ls .
 import logging
 import os
 import sys
-from argparse import ArgumentParser, BooleanOptionalAction, FileType
+from argparse import ArgumentParser, BooleanOptionalAction
 from copy import deepcopy
 
+from yaml import safe_load
+
 from .. import get_reader, init_backend
-from ..support import open_support_file
+from . import readable_file
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +133,7 @@ def seed_terminology(terminology_data, editor=None):
     # Term is automatically saved when an editor is present in order to capture
     # provenance. So, no need to save here.
     term = Terminology(**term_data)
+    logger.info(f"terminology, {term.name}, seeded.")
 
 
 def format_for_loc(file_path):
@@ -186,8 +189,8 @@ def load_institution(institution_id, institution):
     return inst
 
 
-def load_default_terminologies(organization):
-    term_config = open_support_file("terminologies.yaml")
+def load_default_terminologies(organization, term_config):
+    # term_config = open_support_file("terminologies.yaml")
 
     terms_seeded = {}
     for file_name, file_config in term_config.items():
@@ -218,8 +221,23 @@ def locutils():
     from locutils._version import __version__
 
     defaultdb = db_uri()
+    cfg_parser = ArgumentParser(add_help=False)
+    cfg_parser.add_argument(
+        "--config",
+        type=readable_file,
+        default="config.yaml",
+        help="Primary configuration file containing relevant organizations and seed data for institutions",
+    )
+    cfg_args, remaining_argv = cfg_parser.parse_known_args()
 
-    parser = ArgumentParser(description="Load CSV data into locutus database.")
+    config = safe_load(cfg_args.config.open("rt"))
+    orgs = config.get("organizations", ["kf", "include", "anvil"])
+    institutions = config.get("institutions")
+
+    parser = ArgumentParser(
+        description="Load CSV data into locutus database.", parents=[cfg_parser]
+    )
+    # cfg_parser.add_argument("--config", type=FileType("r"), default=cfg_args.config)
     parser.add_argument(
         "-db",
         "--db-uri",
@@ -237,8 +255,8 @@ def locutils():
     parser.add_argument(
         "-o",
         "--org",
-        choices=["kf", "include", "anvil"],
-        default="kf",
+        choices=orgs,
+        default=orgs[0],
         help="Which organization is this run for? This only impacts 'load default' behavior",
     )
     parser.add_argument(
@@ -258,7 +276,7 @@ def locutils():
         "-t",
         "--terminology_csv",
         default=[],
-        type=FileType("rt"),
+        type=readable_file,
         action="append",
         help="By default, the contents will be loaded based on the support "
         "configuration data built into the library, but users can load "
@@ -296,7 +314,7 @@ def locutils():
     )
     """
 
-    args = parser.parse_args()
+    args = parser.parse_args(remaining_argv)
 
     # Holding this off until I've had time to update the model's logging
     # to be more flexible
@@ -312,7 +330,7 @@ def locutils():
     client = init_backend(args.db_uri)
 
     if args.institutions:
-        institutions = open_support_file("institutions.yaml")
+        # institutions = open_support_file("institutions.yaml")
         dbinst = []
         for instid, institution in institutions.items():
             try:
@@ -330,13 +348,23 @@ def locutils():
     terms_seeded = {}
     # Load default terminologies if none are provided
     if len(args.terminology_csv) == 0:
-        terms_seeded = load_default_terminologies(organization=args.org)
+        term_config = config.get("terminologies")
+
+        if term_config:
+            terms_seeded = load_default_terminologies(
+                organization=args.org, term_config=config.get("terminologies")
+            )
+        else:
+            logger.error(
+                "Configuration file, {args.config} does not contain any terminology configuration. Unable to proceed with loading terminologies"
+            )
+            sys.exit(1)
     # Otherwise, load whichever terminologies were specifically provided
     # Users can skip loading terminologies altogether using 'none' as
     # the terminology filename
     elif args.terminology_csv != ["none"]:
         for termcsv in args.terminology_csv:
-            term_data = format_for_loc(termcsv.name)
+            term_data = format_for_loc(str(termcsv))
 
             for termid, terminology in term_data.items():
                 seed_terminology(terminology)
