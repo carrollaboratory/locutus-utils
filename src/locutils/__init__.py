@@ -1,39 +1,37 @@
+import io
 import logging
-import yaml
-import requests
-import os
-import json
 import re
 import sys
-import time
-from pathlib import Path
-from csv import DictReader 
-import io
-from ._version import __version__
+from csv import DictReader
 
-if sys.stderr.isatty():
-    from rich.console import Console 
-    from rich.logging import RichHandler 
-    from rich.traceback import install
+import requests
 
 _loc_client = None
 logger = logging.getLogger(__name__)
 
+
 # Ideally, we should have a readable logger for local execution, but we'll need
 # to tweak locutus to do logging a little differently. So, we'll revisit this
-# once there is time for doing that little bit of work. 
+# once there is time for doing that little bit of work.
 def init_logging(loglevel):
     global logger
+
     # When we are in the terminal, let's use the rich logging
     DATEFMT = "%Y-%m-%dT%H:%M:%SZ"
     if sys.stderr.isatty():
+        from rich.console import Console
+        from rich.logging import RichHandler
+        from rich.traceback import install
+
         install(show_locals=True)
-        
-        handler = RichHandler(level=loglevel, 
-                console=Console(stderr=True),
-                show_time=False,
-                show_level=True,
-                rich_tracebacks=True)
+
+        handler = RichHandler(
+            level=loglevel,
+            console=Console(stderr=True),
+            show_time=False,
+            show_level=True,
+            rich_tracebacks=True,
+        )
         FORMAT = "%(message)s"
     else:
         FORMAT = "%(asctime)s\t%(levelname)s\t%(message)s"
@@ -59,10 +57,13 @@ def init_backend(dburi=None):
 
     return _loc_client
 
+
 def get_reader(file_path, delimiter=None):
-    if re.search(r'^https:', file_path):
+    if re.search(r"^https:", file_path):
         return get_reader_from_gh(url=file_path, delimiter=delimiter)
-    return DictReader(open(file_path, 'rt'))
+
+    return DictReader(open(file_path, "rt"))
+
 
 def get_reader_from_gh(url, delimiter=None):
     "Returns a dictreader iterator"

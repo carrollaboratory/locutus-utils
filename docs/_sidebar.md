@@ -1,2 +1,3 @@
-* [Home](/)
-* [Seed Data](seed_data.md)
+- [Home](/)
+- [Seed Data](seed_data.md)
+- [Configuration](config.md)
