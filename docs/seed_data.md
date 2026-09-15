@@ -6,6 +6,25 @@ default configuration points to our Locutus Utilities repository where the files
 are created. However, users can also load terminologies from their local machine
 (or elsewhere on the web) as long as those files are formatted correctly.
 
+## Requirements
+
+In addition to the basic python dependencies (locutus and PyYAML), locutus
+utilities requires a valid configuration file.
+
+For Free the Data (FTD) users, this can be pulled down using our blueprint
+application:
+
+```bash
+uvx --from git+https://github.com/carrollaboratory/ftd-blueprint blue -c locutus-utils -o config.yaml
+```
+
+This does require
+[uv to be installed](https://docs.astral.sh/uv/getting-started/installation/),
+but otherwise offloads all dependencies to uv to sort out.
+
+For those outside our group, you will want to create your own
+[configuration file](config.md).
+
 ## Usage
 
 Users can get help directly using the -h flag
