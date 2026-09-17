@@ -168,9 +168,10 @@ def format_for_loc(file_path):
     return terminology_data
 
 
-def load_institution(institution_id, institution):
+def load_institution(institution_id: str, institution: dict, force: bool = False):
     # This will only do anything if the institution doesn't already exist
     from locutus.model.institution import Institution
+    from locutus.model.user import User
 
     inst = Institution.get(institution_id)
 
@@ -184,6 +185,21 @@ def load_institution(institution_id, institution):
         inst = Institution(**new_institution)
         inst.save()
         logger.info(f"New institution: {institution['name']}")
+    elif force:
+        existing_emails = set(inst.allowed_emails)
+        for id in inst.member_ids:
+            user = User.get(id)
+            if user:
+                existing_emails.add(user.email)
+
+        changes = False
+        for email in institution["allowed_emails"]:
+            if email not in existing_emails:
+                inst.allowed_emails.append(email)
+                changes = True
+                logger.info(f"Adding {email} as allowed for {institution['name']}")
+        if changes:
+            inst.save()
     else:
         logger.info(f"Skipping addition of institution, {institution['name']}")
     return inst
@@ -233,6 +249,7 @@ def locutils():
     config = safe_load(cfg_args.config.open("rt"))
     orgs = config.get("organizations", ["kf", "include", "anvil"])
     institutions = config.get("institutions")
+    admin_emails = config.get("admin_emails")
 
     parser = ArgumentParser(
         description="Load CSV data into locutus database.", parents=[cfg_parser]
@@ -300,6 +317,18 @@ def locutils():
         default=True,
         help="Load default institution data if the institution doesn't exist",
     )
+    parser.add_argument(
+        "--force-institutions",
+        action=BooleanOptionalAction,
+        default=False,
+        help="replace the allowed emails with the new ones if they already exist.",
+    )
+    parser.add_argument(
+        "--force-admin",
+        action=BooleanOptionalAction,
+        default=False,
+        help="Add emails even if the administrator list is already present.",
+    )
 
     # Locutus currently clobbers the logger if we define it here, so I'll leave
     # this here but comment it out until I have time to update the model to be
@@ -323,20 +352,48 @@ def locutils():
     logger = logging.getLogger(__name__)
     # logger.info(f"Logger initialized to {args.log_level}")
 
+    import locutus
     from locutus.storage.mongo import filter_uri
 
     print(f"Database URI: {filter_uri(args.db_uri)}")
     # Initialize the model's database client
     client = init_backend(args.db_uri)
 
-    if args.institutions:
+    # Admin Emails
+    doc = locutus.persistence().collection("Config").document("bootstrap").get()
+    if not doc.exists or args.force_admin:
+        if doc.exists:
+            from locutus.model.user import User
+
+            for email_address in admin_emails:
+                # Check if the user exists
+                user = User.find_by_email(email_address)
+                if user:
+                    if user.role != User.Role.Admin:
+                        user.role = User.Role.Admin
+                        user.save()
+            # Just overwrite whatever is already there
+            locutus.persistence().collection("Config").document("bootstrap").set(
+                {"adminEmails": admin_emails}
+            )
+        else:
+            locutus.persistence().collection("Config").document("bootstrap").set(
+                {"adminEmails": admin_emails}
+            )
+    logger.info("Skipping reinitialization of admin emails")
+
+    if args.institutions or args.force_institutitions:
         # institutions = open_support_file("institutions.yaml")
         dbinst = []
         for instid, institution in institutions.items():
             try:
                 orgs = {x.lower() for x in institution.get("organizations")}
                 if "all" in orgs or args.org in orgs:
-                    dbinst.append(load_institution(instid, institution))
+                    dbinst.append(
+                        load_institution(
+                            instid, institution, force=args.force_institutions
+                        )
+                    )
             except KeyError:
                 logger.error(
                     f"Malformed institution, {instid}. No organization entry was found."

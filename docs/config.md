@@ -5,6 +5,7 @@ information required for determining what to seed. This configuration file is
 broken into 3 top level sections:
 
 - organizations
+- admin_emails
 - institutions
 - terminologies
 
@@ -30,6 +31,22 @@ organizations:
 
 When locutus runs, it is run with a single organization being active. This
 determines which resources are seeded.
+
+## admin_emails
+
+For certain tasks, users are expected to have admin rights. This includes
+creating new institutions and adding emails to an institution and granting admin
+rights to other uers. For newly provisioned machines, this is done using a
+bootstrap list of administrator emails.
+
+Typically, this will only be seeded if the structure is missing altogether to
+prevent old emails from getting added back in by accident.
+
+```yaml
+admin_emails:
+  - email.address@domain.org
+  - another.address@domain.org
+```
 
 ## institutions
 
