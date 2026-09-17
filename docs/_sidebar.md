@@ -1,3 +1,4 @@
 - [Home](/)
 - [Seed Data](seed_data.md)
+- [API Tokens](tokens)
 - [Configuration](config.md)
