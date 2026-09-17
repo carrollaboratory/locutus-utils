@@ -11,7 +11,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 
-dependencies = ["locutus @ git+https://github.com/NIH-NCPI/locutus",  
+dependencies = ["locutus @ git+https://github.com/NIH-NCPI/locutus",
                 "PyYAML"]
 
 dynamic = ["version"]
@@ -30,3 +30,4 @@ where = ["src"]  # list of folders that contain the packages (["."] by default)
 
 [project.scripts]
 locutils = "locutils.tools.seed_data:locutils"
+loctok = "locutils.tools.token:loctok"
