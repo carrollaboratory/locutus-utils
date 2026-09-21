@@ -185,6 +185,13 @@ def load_institution(institution_id: str, institution: dict, force: bool = False
         inst = Institution(**new_institution)
         inst.save()
         logger.info(f"New institution: {institution['name']}")
+
+        for email in institution["allowed_emails"]:
+            user = User.find_by_email(email)
+
+            if user and institution_id not in user.institution_ids:
+                user.institution_ids.append(institution_id)
+                user.save()
     elif force:
         existing_emails = set(inst.allowed_emails)
         for id in inst.member_ids:
@@ -198,6 +205,10 @@ def load_institution(institution_id: str, institution: dict, force: bool = False
                 inst.allowed_emails.append(email)
                 changes = True
                 logger.info(f"Adding {email} as allowed for {institution['name']}")
+            user = User.find_by_email(email)
+            if user and institution_id not in user.institution_ids:
+                user.institution_ids.append(institution_id)
+                user.save()
         if changes:
             inst.save()
     else:
