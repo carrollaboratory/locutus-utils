@@ -247,6 +247,12 @@ def load_default_terminologies(organization, term_config):
 def locutils():
     from locutils._version import __version__
 
+    # Database copies have their own subcommands and don't use config.yaml
+    if len(sys.argv) > 1 and sys.argv[1] in ("dump", "load"):
+        from locutils.dbcopy.cli import main
+
+        sys.exit(main(sys.argv[1:]))
+
     defaultdb = db_uri()
     cfg_parser = ArgumentParser(add_help=False)
     cfg_parser.add_argument(
@@ -263,7 +269,10 @@ def locutils():
     admin_emails = config.get("admin_emails")
 
     parser = ArgumentParser(
-        description="Load CSV data into locutus database.", parents=[cfg_parser]
+        description="Load CSV data into locutus database.",
+        epilog="To copy a whole database to a file and back, see "
+        "'locutils dump --help' and 'locutils load --help'.",
+        parents=[cfg_parser],
     )
     # cfg_parser.add_argument("--config", type=FileType("r"), default=cfg_args.config)
     parser.add_argument(
@@ -327,6 +336,13 @@ def locutils():
         action=BooleanOptionalAction,
         default=True,
         help="Load default institution data if the institution doesn't exist",
+    )
+    parser.add_argument(
+        "--terminologies",
+        action=BooleanOptionalAction,
+        default=True,
+        help="Seed terminologies (by default). Use --no-terminologies to leave "
+        "existing terminologies alone, e.g. after loading a dump.",
     )
     parser.add_argument(
         "--force-institutions",
@@ -393,7 +409,7 @@ def locutils():
             )
     logger.info("Skipping reinitialization of admin emails")
 
-    if args.institutions or args.force_institutitions:
+    if args.institutions or args.force_institutions:
         # institutions = open_support_file("institutions.yaml")
         dbinst = []
         for instid, institution in institutions.items():
@@ -415,7 +431,9 @@ def locutils():
                 sys.exit(1)
     terms_seeded = {}
     # Load default terminologies if none are provided
-    if len(args.terminology_csv) == 0:
+    if not args.terminologies:
+        logger.info("Skipping terminologies")
+    elif len(args.terminology_csv) == 0:
         term_config = config.get("terminologies")
 
         if term_config:
