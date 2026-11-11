@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "locutils"
 description = "Tools that facilitate the development and maintenance of Locutus"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
