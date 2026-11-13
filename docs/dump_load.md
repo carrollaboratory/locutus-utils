@@ -108,3 +108,25 @@ One JSON object in MongoDB relaxed Extended JSON:
 
 Documents are sorted by `_id`, one per line, so two dumps of the same data can
 be diffed. Passwords are masked in `source.uri`.
+
+## Tests
+
+```bash
+uv run --group dev pytest
+```
+
+Most tests need no database. The ones that do (marked `mongo`) use the
+server in `LOCUTILS_TEST_MONGO_URI`, default `mongodb://127.0.0.1:27017/`,
+and are skipped when nothing answers there; add `-rs` to see why. The URI
+names a server, not a database: each test creates its own `locutils_test_*`
+databases and drops them afterwards, so the mapdragon-unified mongo service
+works fine:
+
+```bash
+LOCUTILS_TEST_MONGO_URI='mongodb://locutus:locutus@127.0.0.1:27017/?authSource=admin' \
+  uv run --group dev pytest -rs
+```
+
+A throwaway server works too: `docker run --rm -d -p 27017:27017 mongo:8`.
+Firestore and DocumentDB aren't covered; the in-place load used for
+Firestore is only simulated.

@@ -31,3 +31,10 @@ where = ["src"]  # list of folders that contain the packages (["."] by default)
 [project.scripts]
 locutils = "locutils.tools.seed_data:locutils"
 loctok = "locutils.tools.token:loctok"
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["mongo: needs a MongoDB server (LOCUTILS_TEST_MONGO_URI)"]
